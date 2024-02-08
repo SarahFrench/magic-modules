@@ -8,8 +8,6 @@ on:
     paths:
       - '.github/workflows/teamcity-test.yml'
       - 'mmv1/third_party/terraform/!.teamcity'
-    paths-ignore:
-      - 'mmv1/third_party/terraform/!.teamcity/*.md'
 
 
 jobs:
