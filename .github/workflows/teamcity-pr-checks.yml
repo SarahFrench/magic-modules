@@ -1,0 +1,26 @@
+name: TeamCity PR Checks
+permissions: read-all
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/teamcity-test.yml'
+      - 'mmv1/third_party/terraform/!.teamcity'
+    paths-ignore:
+      - 'mmv1/third_party/terraform/!.teamcity/*.md'
+
+
+jobs:
+
+  terraform-provider-google:
+    uses: ./.github/workflows/build-downstream.yml
+    with:
+      repo: 'terraform-provider-google'
+
+  teamcity-unit-tests:
+    name: terraform-provider-google
+    needs: terraform-provider-google
+    uses: ./.github/workflows/unit-test-tpg.yml
+    with:
+      repo: 'terraform-provider-google'
