@@ -3,5 +3,6 @@
 package generated
 
 var ServiceParallelism = mapOf(
-    "looker" to 1
+    "looker" to 1,
+    "foobar" to 1
 )
