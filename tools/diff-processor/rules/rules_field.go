@@ -142,7 +142,7 @@ func fieldRule_OptionalComputedToOptional_func(old, new *schema.Schema, mc Messa
 var fieldRule_DefaultModification = FieldRule{
 	name:        "Adding or Changing a Default Value",
 	definition:  "Adding a default value where one was not previously declared can work in a very limited subset of scenarios but is an all around 'not good' practice to engage in. Changing a default value will absolutely cause a breakage. The mechanism of break for both scenarios is current terraform deployments now gain a diff with sequential applies where the diff is the new or changed default value.",
-	message:     "Field {{field}} default value changed from {{oldDefault}} to {{newDefault}} on {{resource}}",
+	message:     "Field {{field}} default value changed from `{{oldDefault}}` to `{{newDefault}}` on {{resource}}",
 	identifier:  "field-changing-default-value",
 	isRuleBreak: fieldRule_DefaultModification_func,
 }
