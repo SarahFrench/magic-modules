@@ -3,8 +3,8 @@ package fwprovider
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -30,28 +30,23 @@ type GoogleProviderConfigPluginFrameworkDataSource struct {
 }
 
 type GoogleProviderConfigPluginFrameworkModel struct {
-	// Currently this reflects the FrameworkProviderConfig struct and ProviderModel in google/fwmodels/provider_model.go
-	// which means it uses the plugin-framework type system where values can be explicitly Null or Unknown.
-	//
-	// As part of future muxing fixes/refactoring we'll change this struct to reflect structs used in the SDK code, and will move to
-	// using the SDK type system.
-	Credentials                        types.String `tfsdk:"credentials"`
-	AccessToken                        types.String `tfsdk:"access_token"`
-	ImpersonateServiceAccount          types.String `tfsdk:"impersonate_service_account"`
-	ImpersonateServiceAccountDelegates types.List   `tfsdk:"impersonate_service_account_delegates"`
-	Project                            types.String `tfsdk:"project"`
-	BillingProject                     types.String `tfsdk:"billing_project"`
-	Region                             types.String `tfsdk:"region"`
-	Zone                               types.String `tfsdk:"zone"`
-	Scopes                             types.List   `tfsdk:"scopes"`
+	Credentials                        string   `tfsdk:"credentials"`
+	AccessToken                        string   `tfsdk:"access_token"`
+	ImpersonateServiceAccount          string   `tfsdk:"impersonate_service_account"`
+	ImpersonateServiceAccountDelegates []string `tfsdk:"impersonate_service_account_delegates"`
+	Project                            string   `tfsdk:"project"`
+	BillingProject                     string   `tfsdk:"billing_project"`
+	Region                             string   `tfsdk:"region"`
+	Zone                               string   `tfsdk:"zone"`
+	Scopes                             []string `tfsdk:"scopes"`
 	//	omit Batching
-	UserProjectOverride                       types.Bool   `tfsdk:"user_project_override"`
-	RequestTimeout                            types.String `tfsdk:"request_timeout"`
-	RequestReason                             types.String `tfsdk:"request_reason"`
-	UniverseDomain                            types.String `tfsdk:"universe_domain"`
-	DefaultLabels                             types.Map    `tfsdk:"default_labels"`
-	AddTerraformAttributionLabel              types.Bool   `tfsdk:"add_terraform_attribution_label"`
-	TerraformAttributionLabelAdditionStrategy types.String `tfsdk:"terraform_attribution_label_addition_strategy"`
+	UserProjectOverride                       bool              `tfsdk:"user_project_override"`
+	RequestReason                             string            `tfsdk:"request_reason"`
+	RequestTimeout                            time.Duration     `tfsdk:"request_timeout"`
+	UniverseDomain                            string            `tfsdk:"universe_domain"`
+	DefaultLabels                             map[string]string `tfsdk:"default_labels"`
+	AddTerraformAttributionLabel              bool              `tfsdk:"add_terraform_attribution_label"`
+	TerraformAttributionLabelAdditionStrategy string            `tfsdk:"terraform_attribution_label_addition_strategy"`
 }
 
 func (m *GoogleProviderConfigPluginFrameworkModel) GetLocationDescription(providerConfig *transport_tpg.Config) fwresource.LocationDescription {
@@ -203,52 +198,22 @@ func (d *GoogleProviderConfigPluginFrameworkDataSource) Read(ctx context.Context
 	}
 
 	// Copy all values from the provider config into this data source
-	data.Credentials = types.StringValue(d.providerConfig.Credentials)
-	data.AccessToken = types.StringValue(d.providerConfig.AccessToken)
-	data.ImpersonateServiceAccount = types.StringValue(d.providerConfig.ImpersonateServiceAccount)
-
-	delegateAttrs := make([]attr.Value, len(d.providerConfig.ImpersonateServiceAccountDelegates))
-	for i, delegate := range d.providerConfig.ImpersonateServiceAccountDelegates {
-		delegateAttrs[i] = types.StringValue(delegate)
-	}
-	delegates, di := types.ListValue(types.StringType, delegateAttrs)
-	if di.HasError() {
-		resp.Diagnostics.Append(di...)
-	}
-	data.ImpersonateServiceAccountDelegates = delegates
-
-	data.Project = types.StringValue(d.providerConfig.Project)
-	data.Region = types.StringValue(d.providerConfig.Region)
-	data.BillingProject = types.StringValue(d.providerConfig.BillingProject)
-	data.Zone = types.StringValue(d.providerConfig.Zone)
-	data.UniverseDomain = types.StringValue(d.providerConfig.UniverseDomain)
-
-	scopeAttrs := make([]attr.Value, len(d.providerConfig.Scopes))
-	for i, scope := range d.providerConfig.Scopes {
-		scopeAttrs[i] = types.StringValue(scope)
-	}
-	scopes, di := types.ListValue(types.StringType, scopeAttrs)
-	if di.HasError() {
-		resp.Diagnostics.Append(di...)
-	}
-	data.Scopes = scopes
-
-	data.UserProjectOverride = types.BoolValue(d.providerConfig.UserProjectOverride)
-	data.RequestReason = types.StringValue(d.providerConfig.RequestReason)
-	data.RequestTimeout = types.StringValue(d.providerConfig.RequestTimeout.String())
-
-	lbs := make(map[string]attr.Value, len(d.providerConfig.DefaultLabels))
-	for k, v := range d.providerConfig.DefaultLabels {
-		lbs[k] = types.StringValue(v)
-	}
-	labels, di := types.MapValueFrom(ctx, types.StringType, lbs)
-	if di.HasError() {
-		resp.Diagnostics.Append(di...)
-	}
-	data.DefaultLabels = labels
-
-	data.AddTerraformAttributionLabel = types.BoolValue(d.providerConfig.AddTerraformAttributionLabel)
-	data.TerraformAttributionLabelAdditionStrategy = types.StringValue(d.providerConfig.TerraformAttributionLabelAdditionStrategy)
+	data.Credentials = d.providerConfig.Credentials
+	data.AccessToken = d.providerConfig.AccessToken
+	data.ImpersonateServiceAccount = d.providerConfig.ImpersonateServiceAccount
+	data.ImpersonateServiceAccountDelegates = d.providerConfig.ImpersonateServiceAccountDelegates
+	data.Project = d.providerConfig.Project
+	data.Region = d.providerConfig.Region
+	data.BillingProject = d.providerConfig.BillingProject
+	data.Zone = d.providerConfig.Zone
+	data.UniverseDomain = d.providerConfig.UniverseDomain
+	data.Scopes = d.providerConfig.Scopes
+	data.UserProjectOverride = d.providerConfig.UserProjectOverride
+	data.RequestReason = d.providerConfig.RequestReason
+	data.RequestTimeout = time.Duration(d.providerConfig.RequestTimeout)
+	data.DefaultLabels = d.providerConfig.DefaultLabels
+	data.AddTerraformAttributionLabel = d.providerConfig.AddTerraformAttributionLabel
+	data.TerraformAttributionLabelAdditionStrategy = d.providerConfig.TerraformAttributionLabelAdditionStrategy
 
 	// Warn users against using this data source
 	resp.Diagnostics.Append(diag.NewWarningDiagnostic(
